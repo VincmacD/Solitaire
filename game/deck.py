@@ -1,13 +1,12 @@
 import os
 import random
 import pygame
-from itertools import count
 from pile import *
 from card import *
 from pile_type import *
 import sys
 
-# Get the directory of the current script
+# Directory of the current script
 script_dir = os.path.dirname(__file__)
 
 # Path for the cards' images
@@ -20,7 +19,7 @@ class Deck:
         self.cards = [] # List of Card objects
         self.suits = CARD_SUITS
         self.values = CARD_VALUES
-        self.empty_pile_color = (136, 191, 134)
+        self.mat_color = (136, 191, 134)
         self.piles = [] # List of Pile objects
         self.card_images = {} # Dictionary to store card images
         self.card_size = card_size
@@ -55,13 +54,13 @@ class Deck:
                     sys.exit(1)
 
     def load_piles(self, display_size):
-        #Initializes the piles for the game based on the display size.
+        #Initializes the piles for the game.
         SCREEN_WIDTH, SCREEN_HEIGHT = display_size
         pile_spacing = 50
         start_x = 50
         start_y = CARD_HEIGHT + 100 
 
-        # Initialize tableau piles with PileType.TABLEAU (implicitly set by default constructor)
+        # Initialize tableau piles
         tableau_piles = [
             (self.cards[0:1], start_x, start_y),
             (self.cards[1:3], start_x + CARD_WIDTH + pile_spacing, start_y),
@@ -77,10 +76,10 @@ class Deck:
             # Set all cards in the pile to face-down except the last one
             for card in tableau.cards[:-1]:
                 card.discovered = False
-            tableau.cards[-1].discovered = True  # Ensure the last card is face-up
+            tableau.cards[-1].discovered = True
             self.piles.append(tableau)
 
-        # Initialize stock, waste, and foundation piles with explicit PileType
+        # Initialize stock, waste, and foundation piles
         stock = Pile(self.cards[28:], start_x, pile_spacing, (CARD_WIDTH, CARD_HEIGHT), pile_type=PileType.STOCK)
         waste = Pile([], start_x + CARD_WIDTH + pile_spacing, pile_spacing, (CARD_WIDTH, CARD_HEIGHT), pile_type=PileType.WASTE)
         foundation1 = Pile([], start_x + CARD_WIDTH*3 + pile_spacing*3, pile_spacing, (CARD_WIDTH, CARD_HEIGHT), pile_type=PileType.FOUNDATION)
@@ -88,7 +87,7 @@ class Deck:
         foundation3 = Pile([], start_x + CARD_WIDTH*5 + pile_spacing*5, pile_spacing, (CARD_WIDTH, CARD_HEIGHT), pile_type=PileType.FOUNDATION)
         foundation4 = Pile([], start_x + CARD_WIDTH*6 + pile_spacing*6, pile_spacing, (CARD_WIDTH, CARD_HEIGHT), pile_type=PileType.FOUNDATION)
 
-        # Aggregate all piles into a list for easy management
+        # Aggregate all piles into a list
         self.piles.extend([stock, waste, foundation1, foundation2, foundation3, foundation4])
 
     def shuffle_cards(self):
@@ -106,7 +105,7 @@ class Deck:
     def get_card_at_position(self, mouse_pos):
         #Returns the card and its pile at the given mouse position
         for pile in self.piles:
-            for card in reversed(pile.cards):  # Start from the top card
+            for card in reversed(pile.cards):
                 if card.is_mouse_over(mouse_pos):
                     return card, pile
         return None, None
@@ -135,7 +134,7 @@ class Deck:
         origin_pile.update_positions()
         target_pile.update_positions()
 
-        return True  # The move was successful
+        return True
     
     def transfer_card_from_deck_to_waste(self):
         # Find the deck and waste piles
@@ -150,17 +149,17 @@ class Deck:
             # Set the card's position to the waste pile's position
             card.set_position(waste_pile.x, waste_pile.y)
 
-            waste_pile.cards.append(card)  # Add the card to the waste pile
+            waste_pile.cards.append(card) 
 
     def transfer_waste_to_deck(self):
-        # similar to method above
+       
         deck_pile = next((pile for pile in self.piles if pile.pile_type == PileType.STOCK), None)
         waste_pile = next((pile for pile in self.piles if pile.pile_type == PileType.WASTE), None)
 
         # Check if the stock pile is empty and the waste pile has cards
         if deck_pile and waste_pile and not deck_pile.cards and waste_pile.cards:
             # Reverse the order of cards in the waste pile to maintain the correct order when moving back to the deck
-            reversed_cards = reversed(waste_pile.cards)  # Reverse the list to maintain order
+            reversed_cards = reversed(waste_pile.cards)  
             for card in reversed_cards:
                 card.discovered = False 
                 card.set_position(deck_pile.x, deck_pile.y)  # Set the card's position to the deck pile's position
@@ -213,11 +212,19 @@ class Deck:
                 self.draw_pile(game_display, pile)
 
     def draw_pile(self, game_display, pile):
-        if len(pile.cards) == 0:
-            pygame.draw.rect(game_display, self.empty_pile_color, [pile.x, pile.y, self.card_size[0], self.card_size[1]])
-        for card in pile.cards:
-            # Access the image using the filename stored in the Card instance
-            img = self.card_images[card.name_of_card] if card.discovered else self.back_image_of_card
-            game_display.blit(img, (card.x, card.y))
+        margin = 3 
+
+        # Draw the mats with slightly larger size than cards
+        pygame.draw.rect(game_display, self.mat_color, [
+            pile.x - margin, 
+            pile.y - margin, 
+            self.card_size[0] + (margin * 2), 
+            self.card_size[1] + (margin * 2)
+        ])
+        # Draws cards on top of mats
+        for pile in self.piles:
+            for card in pile.cards:
+                img = self.card_images[card.name_of_card] if card.discovered else self.back_image_of_card
+                game_display.blit(img, (card.x, card.y))
 
             
