@@ -9,14 +9,25 @@ SCREEN_HEIGHT = 768
 SCREEN_TITLE = "Solitaire"
 BACKGROUND_COLOR = (0,128,0)
 
+# GUI bar colour and size
+UI_BAR_COLOR = (255,255,255)
+UI_BAR_SIZE = 35
+
 class Ui:
     def __init__(self):
         # Initialize Pygame
         pygame.init()
-        
+        self.setup()
+
+    def setup(self):
         # set screen size
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
+        # Set up GUI
+        self.topbar = pygame.Rect(0, 0, SCREEN_WIDTH, UI_BAR_SIZE)
+        self.bottom_bar = pygame.Rect(0, SCREEN_HEIGHT-UI_BAR_SIZE, SCREEN_WIDTH, UI_BAR_SIZE)
+        self.replay_btn = pygame.Rect(5, 5, 25, 25)
+        
         # set title
         pygame.display.set_caption(SCREEN_TITLE)
         
@@ -53,6 +64,11 @@ class Ui:
 
             # Display the deck
             self.deck.display(self.screen)
+
+            # Display the GUI
+            pygame.draw.rect(self.screen, UI_BAR_COLOR, self.topbar)
+            pygame.draw.rect(self.screen, UI_BAR_COLOR, self.bottom_bar)
+            pygame.draw.rect(self.screen, (255,0,0), self.replay_btn)
             
              # Check if there are any dragged cards
             if self.dragged_cards:  
@@ -60,10 +76,18 @@ class Ui:
                     img = self.deck.card_images[dragged_card.name_of_card] 
                     self.screen.blit(img, (dragged_card.x, dragged_card.y))
 
+            # Place a win condition that restarts the game when triggered
+            if len(self.deck.piles[-1].cards) == 13 and len(self.deck.piles[-2].cards) == 13 and len(self.deck.piles[-3].cards) == 13 and len(self.deck.piles[-4].cards) == 13:
+                self.setup()
+            
             # Update the display
             pygame.display.flip()
 
     def handle_mouse_down(self, mouse_pos):
+        # Check to see if player clicks Replay button
+        if mouse_pos[0] > self.replay_btn.left and mouse_pos[0] < self.replay_btn.right and mouse_pos[1] > self.replay_btn.top and mouse_pos[1] < self.replay_btn.bottom:
+            self.setup()
+        
         # Check if the click is on the deck pile
         deck_pile = next((pile for pile in self.deck.piles if pile.pile_type == PileType.STOCK), None)
         if deck_pile and deck_pile.is_mouse_over(mouse_pos):
