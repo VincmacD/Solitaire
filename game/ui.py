@@ -75,6 +75,12 @@ class Ui:
             pygame.draw.rect(self.screen, UI_BAR_COLOR, self.bottom_bar)
             pygame.draw.rect(self.screen, (255,0,0), self.replay_btn)
             
+            # Display the score on the top bar
+            font = pygame.font.Font(None, 30)  
+            text = font.render(f'Score: {self.score.score}', True, (0, 0, 0))  # Black color for the font
+            text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, UI_BAR_SIZE // 2))
+            self.screen.blit(text, text_rect)
+
              # Check if there are any dragged cards
             if self.dragged_cards:  
                 for dragged_card in self.dragged_cards:  
