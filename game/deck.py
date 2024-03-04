@@ -23,7 +23,7 @@ class Deck:
         self.piles = [] # List of Pile objects
         self.card_images = {} # Dictionary to store card images
         self.card_size = card_size
-        
+
         # Load back of card image and resize
         self.back_image_of_card = pygame.image.load(back_of_card)
         self.back_image_of_card = self.resize_back_image_of_card()
@@ -117,7 +117,7 @@ class Deck:
                 return pile
         return None
 
-    def move_card(self, card, origin_pile, target_pile):
+    def move_card(self, card, origin_pile, target_pile, score=None):
         # checks if the move is valid using the existing logic
         if not self.is_valid_move(card, origin_pile, target_pile):
             return False  # Exit if the move is not valid
@@ -134,7 +134,22 @@ class Deck:
         origin_pile.update_positions()
         target_pile.update_positions()
 
+        # Update the score if a score object is passed, when card is moved from stock pile/deck to foundation pile or tableau pile
+        if score:
+            score.apply_move_penalty() 
+
+            if target_pile.pile_type == PileType.FOUNDATION:
+                score.move_to_foundation()
+            elif target_pile.pile_type == PileType.TABLEAU:
+                score.move_to_tableau()
+                score.reset_consecutive_moves()
+            else: 
+                score.reset_consecutive_moves()  # Reset the counter if the move is not to the foundation or tableau
+
         return True
+    
+
+
     
     def transfer_card_from_deck_to_waste(self):
         # Find the deck and waste piles
@@ -165,7 +180,7 @@ class Deck:
                 card.set_position(deck_pile.x, deck_pile.y)  # Set the card's position to the deck pile's position
                 deck_pile.cards.append(card)
             waste_pile.cards.clear()  
-
+        
     def is_valid_move(self, card, origin_pile, target_pile):
         # Check if the target pile is not empty
         if target_pile.cards:

@@ -2,6 +2,7 @@ import pygame
 import sys
 from deck import Deck
 from pile import *
+from score import *
 
 # Screen title and size
 SCREEN_WIDTH = 1024
@@ -43,10 +44,14 @@ class Ui:
         self.dragged_cards = []
         self.drag_offset_x = 0
         self.drag_offset_y = 0
-        
+        self.score = Score()
+
+
     def mainloop(self):
+
         # Main loop of the game
         while True:
+
             # Check for events
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -70,6 +75,12 @@ class Ui:
             pygame.draw.rect(self.screen, UI_BAR_COLOR, self.bottom_bar)
             pygame.draw.rect(self.screen, (255,0,0), self.replay_btn)
             
+            # Display the score on the top bar
+            font = pygame.font.Font(None, 30)  
+            text = font.render(f'Score: {self.score.score}', True, (0, 0, 0))  # Black color for the font
+            text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, UI_BAR_SIZE // 2))
+            self.screen.blit(text, text_rect)
+
              # Check if there are any dragged cards
             if self.dragged_cards:  
                 for dragged_card in self.dragged_cards:  
@@ -79,7 +90,14 @@ class Ui:
             # Place a win condition that restarts the game when triggered
             if len(self.deck.piles[-1].cards) == 13 and len(self.deck.piles[-2].cards) == 13 and len(self.deck.piles[-3].cards) == 13 and len(self.deck.piles[-4].cards) == 13:
                 self.setup()
-            
+
+
+            # Apply time penalty
+            self.score.apply_time_penalty()
+
+            # Render score
+            self.score.display_score(self.screen)
+        
             # Update the display
             pygame.display.flip()
 
@@ -94,6 +112,7 @@ class Ui:
              # If the deck pile is empty
             if not deck_pile.cards:
                 self.deck.transfer_waste_to_deck()
+                self.score.refresh_stockpile()
             else:
                 self.deck.transfer_card_from_deck_to_waste()
             return
@@ -156,7 +175,8 @@ class Ui:
                     # Move each card in the dragged stack to the target pile if the bottom card's move is valid
                     for card in self.dragged_cards:
                         self.snap_card_to_pile(card, target_pile)
-                        self.deck.move_card(card, self.origin_pile, target_pile)
+                        self.deck.move_card(card, self.origin_pile, target_pile, self.score)
+
             else:
                 move_valid = False
 
