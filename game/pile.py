@@ -21,7 +21,7 @@ class Pile:
         self.discovered = True if pile_type == PileType.TABLEAU else None
     
         # Spacing configuration for laying out cards in the pile.
-        self.card_spacing = 40
+        self.card_spacing = 25
         self.bottom_margin = 10 
         
         # The cards that belong to this pile.
