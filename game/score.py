@@ -43,7 +43,6 @@ class Score:
     
     def increment_move_count(self):
         self.moves_made += 1
-        print(f"Moves made: {self.moves_made}")  
 
     def display_score(self, screen):
         # Implement the display logic here
