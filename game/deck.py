@@ -136,7 +136,8 @@ class Deck:
 
         # Update the score if a score object is passed, when card is moved from stock pile/deck to foundation pile or tableau pile
         if score:
-            score.apply_move_penalty() 
+            # If the move is valid, increment the move count
+            score.increment_move_count()
 
             if target_pile.pile_type == PileType.FOUNDATION:
                 score.move_to_foundation()

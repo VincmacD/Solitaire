@@ -81,7 +81,12 @@ class Ui:
             text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, UI_BAR_SIZE // 2))
             self.screen.blit(text, text_rect)
 
-             # Check if there are any dragged cards
+            # Display the move count on the top bar
+            move_count_text = font.render(f'Moves: {self.score.moves_made}', True, (0, 0, 0))  
+            move_count_rect = move_count_text.get_rect(center=(SCREEN_WIDTH // 4, UI_BAR_SIZE // 2))
+            self.screen.blit(move_count_text, move_count_rect)
+
+            # Check if there are any dragged cards
             if self.dragged_cards:  
                 for dragged_card in self.dragged_cards:  
                     img = self.deck.card_images[dragged_card.name_of_card] 
@@ -93,7 +98,7 @@ class Ui:
 
 
             # Apply time penalty
-            self.score.apply_time_penalty()
+            # self.score.apply_time_penalty()
 
             # Render score
             self.score.display_score(self.screen)

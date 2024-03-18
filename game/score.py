@@ -3,6 +3,7 @@ import time
 class Score:
     def __init__(self):
         self.score = 0
+        self.moves_made = 0
         self.stockpile_refresh_count = 0
         self.start_time = time.time()
         self.last_penalty_time = time.time()
@@ -29,16 +30,20 @@ class Score:
         self.score -= 5
         print(f"Refreshed Stockpile (reduce 5 points): Score = {self.score}")
 
-    def apply_time_penalty(self):
-        current_time = time.time()
-        if current_time - self.last_penalty_time >= 10:
-            self.score -= 1
-            self.last_penalty_time = current_time
-            print(f"Time Penalty (reduce 1 point): Score = {self.score}")
+    # def apply_time_penalty(self):
+    #     current_time = time.time()
+    #     if current_time - self.last_penalty_time >= 10:
+    #         self.score -= 1
+    #         self.last_penalty_time = current_time
+    #         print(f"Time Penalty (reduce 1 point): Score = {self.score}")
 
-    def apply_move_penalty(self):
-        self.score -= 1
-        print(f"Move made (reduce 1 point): Score = {self.score}")
+    # def apply_move_penalty(self):
+    #     self.score -= 1
+    #     print(f"Move made (reduce 1 point): Score = {self.score}")
+    
+    def increment_move_count(self):
+        self.moves_made += 1
+        print(f"Moves made: {self.moves_made}")  
 
     def display_score(self, screen):
         # Implement the display logic here
