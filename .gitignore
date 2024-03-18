@@ -1,2 +1,9 @@
-game/__pycache__/
+
+# Ignore all .pyc files
+*.pyc
+
+# Ignore all __pycache__ directories
+__pycache__/
+
+# Ignore the entire virtual environment directory
 .venv/
