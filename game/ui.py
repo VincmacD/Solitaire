@@ -101,7 +101,8 @@ class Ui:
                 self.vegas_btn.disable()
 
             # Apply time penalty
-            self.score.apply_time_penalty()
+            if not self.win_screen.visible:
+                self.score.apply_time_penalty()
 
             # Render score
             self.score.display_score(self.screen)
