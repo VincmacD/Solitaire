@@ -31,7 +31,7 @@ class Ui:
         self.bottom_bar = pygame.Rect(0, SCREEN_HEIGHT-UI_BAR_SIZE, SCREEN_WIDTH, UI_BAR_SIZE)
         self.klondike_btn = Button('Klondike Deal', pygame.Rect(0,0,125,Button.DEFAULT_HEIGHT+5))
         self.vegas_btn = Button('Vegas Deal', pygame.Rect(self.klondike_btn.rect.w+1, 0, 125, Button.DEFAULT_HEIGHT+5))
-        self.win_screen = MessageBox('Do you want to play again?')
+        self.win_screen = MessageBox('Play again?')
         
         # set title
         pygame.display.set_caption(SCREEN_TITLE)
