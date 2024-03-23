@@ -21,7 +21,7 @@ class MessageBox:
         self.prompt_rect.center = (self.menu.left + (self.menu.w / 2)-1, self.menu.top + 25)
 
         self.yes = Button('Yes', pygame.Rect(self.menu.x + 75, self.menu.y + 75, Button.DEFAULT_WIDTH, Button.DEFAULT_HEIGHT))
-        self.no = Button('No', pygame.Rect(self.yes.rect.x+self.yes.rect.w + 50, self.yes.rect.y, Button.DEFAULT_WIDTH, Button.DEFAULT_HEIGHT))
+        self.no = Button('Exit', pygame.Rect(self.yes.rect.x+self.yes.rect.w + 50, self.yes.rect.y, Button.DEFAULT_WIDTH, Button.DEFAULT_HEIGHT))
 
     def clicked_yes(self, mouse_pos):
         return self.yes.clicked(mouse_pos)
