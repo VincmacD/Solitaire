@@ -162,9 +162,6 @@ class Ui:
                 self.offset_y = mouse_pos[1] - picked_card.y
 
     def handle_mouse_motion(self, mouse_pos):
-        if self.win_screen.visible:
-            return
-        
         if self.dragged_cards: 
             # Calculate the new position based on the current mouse position minus the drag offset
             delta_x = mouse_pos[0] - self.offset_x
