@@ -90,7 +90,7 @@ class Ui:
 
             # Display the move count on the top bar
             move_count_text = font.render(f'Moves: {self.score.moves_made}', True, (0, 0, 0))  
-            move_count_rect = move_count_text.get_rect(center=(SCREEN_WIDTH // 4, UI_BAR_SIZE // 2))
+            move_count_rect = move_count_text.get_rect(center=(SCREEN_WIDTH // 3, UI_BAR_SIZE // 2))
             self.screen.blit(move_count_text, move_count_rect)
 
             # Check if there are any dragged cards
