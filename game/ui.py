@@ -1,8 +1,10 @@
 import pygame
 import sys
 from deck import Deck
-from button import Button
-from messagebox import MessageBox
+from text import Text
+from gamemode import Gamemode
+from settingsmenu import SettingsMenu
+from widgets import *
 from pile import *
 from score import *
 
@@ -20,18 +22,46 @@ class Ui:
     def __init__(self):
         # Initialize Pygame
         pygame.init()
+        self.score = Score(Gamemode.KLONDIKE)
         self.setup()
 
-    def setup(self):
+    def setup(self, gamemode=Gamemode.KLONDIKE, draw_amount=1, cumulative_score=False):
+        self.gamemode = gamemode
+        self.max_draw_amount = draw_amount
+        self.draw_amount = self.max_draw_amount
+        self.cumulative_points = cumulative_score
+        self.move_made = False
+
+        if not self.cumulative_points:
+            self.score = Score(self.gamemode)
+        
         # set screen size
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
         # Set up GUI
         self.topbar = pygame.Rect(0, 0, SCREEN_WIDTH, UI_BAR_SIZE)
         self.bottom_bar = pygame.Rect(0, SCREEN_HEIGHT-UI_BAR_SIZE, SCREEN_WIDTH, UI_BAR_SIZE)
-        self.klondike_btn = Button('Klondike Deal', pygame.Rect(0,0,125,Button.DEFAULT_HEIGHT+5))
-        self.vegas_btn = Button('Vegas Deal', pygame.Rect(self.klondike_btn.rect.w+1, 0, 125, Button.DEFAULT_HEIGHT+5))
-        self.win_screen = MessageBox('Play again?')
+        self.new_game_btn = Button('New Game', pygame.Rect(0,0,125,Button.DEFAULT_HEIGHT+5))
+        self.settings_btn = Button('Settings', pygame.Rect(self.new_game_btn.rect.right+1, 0, 125, Button.DEFAULT_HEIGHT+5))
+        self.settings = SettingsMenu('Game Settings')
+        self.settings_close_msg = ConfirmationBox('Some changes will be applied on the next game.')
+        self.end_game_screen = MessageBox('Play again?')
+        self.gamemode_display = Text(str.capitalize(self.gamemode.name) + " rules applied.", (SCREEN_WIDTH//2, self.bottom_bar.bottom-19))
+
+        # Set up saved settings
+        match self.gamemode:
+            case Gamemode.KLONDIKE:
+                self.settings.gamemode.options[0].select()
+                self.settings.gamemode.options[1].unselect()
+            case Gamemode.VEGAS:
+                self.settings.gamemode.options[1].select()
+                self.settings.gamemode.options[0].unselect()
+            case _:
+                pass
+        self.settings.draw_amount.options[0].select() if self.max_draw_amount == 1 else self.settings.draw_amount.options[0].unselect()
+        self.settings.draw_amount.options[1].select() if self.max_draw_amount == 3 else self.settings.draw_amount.options[1].unselect()
+        self.settings.cumulative_points.options[0].select() if self.cumulative_points == True else self.settings.cumulative_points.options[0].unselect()
+        self.settings.cumulative_points.options[1].select() if self.cumulative_points == False else self.settings.cumulative_points.options[1].unselect()
         
         # set title
         pygame.display.set_caption(SCREEN_TITLE)
@@ -48,7 +78,6 @@ class Ui:
         self.dragged_cards = []
         self.drag_offset_x = 0
         self.drag_offset_y = 0
-        self.score = Score()
 
 
     def mainloop(self):
@@ -69,7 +98,7 @@ class Ui:
                     self.handle_mouse_motion(pygame.mouse.get_pos())
             
             # Fill the background with green color (or lighter green if game is over)
-            self.screen.fill(self.bg_color if not self.win_screen.visible else (125,218,88))
+            self.screen.fill(self.bg_color if not self.end_game_screen.visible and not self.settings.visible and not self.settings_close_msg.visible else (125,218,88))
 
             # Display the deck
             self.deck.display(self.screen)
@@ -77,10 +106,16 @@ class Ui:
             # Display the GUI
             pygame.draw.rect(self.screen, UI_BAR_COLOR, self.topbar)
             pygame.draw.rect(self.screen, UI_BAR_COLOR, self.bottom_bar)
-            self.klondike_btn.draw(self.screen)
-            self.vegas_btn.draw(self.screen)
-            if self.win_screen.visible:
-                self.win_screen.draw(self.screen)
+            self.new_game_btn.draw(self.screen)
+            self.settings_btn.draw(self.screen)
+            self.gamemode_display.draw(self.screen)
+            
+            if self.end_game_screen.visible:
+                self.end_game_screen.draw(self.screen)
+            elif self.settings.visible:
+                self.settings.draw(self.screen)
+            elif self.settings_close_msg.visible:
+                self.settings_close_msg.draw(self.screen)
             
             # Display the score on the top bar
             font = pygame.font.Font(None, 30)  
@@ -101,9 +136,9 @@ class Ui:
 
             # Place a win condition that restarts the game when triggered
             if len(self.deck.piles[-1].cards) == 13 and len(self.deck.piles[-2].cards) == 13 and len(self.deck.piles[-3].cards) == 13 and len(self.deck.piles[-4].cards) == 13:
-                self.win_screen.show()
-                self.klondike_btn.disable()
-                self.vegas_btn.disable()
+                self.end_game_screen.show()
+                self.new_game_btn.disable()
+                self.settings_btn.disable()
 
             # Apply time penalty when game is not win
             # if not self.win_screen.visible:
@@ -116,33 +151,92 @@ class Ui:
             pygame.display.flip()
 
     def handle_mouse_down(self, mouse_pos):
-        # Check to see if player clicks a button
-        if self.klondike_btn.clicked(mouse_pos) and self.klondike_btn.enabled:
-            self.setup()
-        elif self.vegas_btn.clicked(mouse_pos) and self.vegas_btn.enabled:
-            print('Vegas rules applied.')
+        # Handle saved settings
+        if self.settings.visible:
+            if self.settings.gamemode.options[0].clicked(mouse_pos):
+                self.gamemode = Gamemode.KLONDIKE
+                self.settings.gamemode.options[0].select()
+                self.settings.gamemode.options[1].unselect()
+            elif self.settings.gamemode.options[1].clicked(mouse_pos):
+                self.gamemode = Gamemode.VEGAS
+                self.settings.gamemode.options[1].select()
+                self.settings.gamemode.options[0].unselect()
+            
+            if self.settings.draw_amount.options[0].clicked(mouse_pos):
+                self.max_draw_amount = 1
+                self.draw_amount = self.max_draw_amount
+                self.settings.draw_amount.options[0].select()
+                self.settings.draw_amount.options[1].unselect()
+            elif self.settings.draw_amount.options[1].clicked(mouse_pos):
+                self.max_draw_amount = 3
+                self.draw_amount = self.max_draw_amount
+                self.settings.draw_amount.options[1].select()
+                self.settings.draw_amount.options[0].unselect()
 
-        # Handle win screen button clicks
-        if self.win_screen.visible:
-            if self.win_screen.clicked_yes(mouse_pos):
-                self.win_screen.hide()
-                self.klondike_btn.enable()
-                self.vegas_btn.enable()
-                self.setup()
-            elif self.win_screen.clicked_no(mouse_pos):
+            if self.settings.cumulative_points.options[0].clicked(mouse_pos):
+                self.cumulative_points = True
+                self.settings.cumulative_points.options[0].select()
+                self.settings.cumulative_points.options[1].unselect()
+            elif self.settings.cumulative_points.options[1].clicked(mouse_pos):
+                self.cumulative_points = False
+                self.settings.cumulative_points.options[1].select()
+                self.settings.cumulative_points.options[0].unselect()
+
+        # Handle In-game button (GUI) clicks
+        if self.new_game_btn.clicked(mouse_pos) and self.new_game_btn.enabled:
+            self.setup(self.gamemode, self.max_draw_amount, self.cumulative_points)
+        elif self.settings_btn.clicked(mouse_pos) and self.settings_btn.enabled:
+            self.settings.show()
+            self.settings_btn.disable()
+            self.new_game_btn.disable()
+
+        # Handle settings menu button clicks
+        if self.settings.visible and self.settings.clicked_close(mouse_pos):
+            self.settings.hide()
+            self.settings_close_msg.show()
+
+        if self.settings_close_msg.visible:
+            if self.settings_close_msg.clicked_ok(mouse_pos):
+                self.settings_close_msg.hide()
+                self.settings.hide()
+                self.settings_btn.enable()
+                self.new_game_btn.enable()
+
+        # Handle end screen button clicks
+        if self.end_game_screen.visible:
+            if self.end_game_screen.clicked_yes(mouse_pos):
+                self.end_game_screen.hide()
+                self.new_game_btn.enable()
+                self.settings_btn.enable()
+                self.setup(self.gamemode, self.max_draw_amount, self.cumulative_points)
+            elif self.end_game_screen.clicked_no(mouse_pos):
                 pygame.quit()
                 sys.exit()
 
-        if not self.win_screen.visible:
+        if not self.end_game_screen.visible and not self.settings.visible and not self.settings_close_msg.visible:
             # Check if the click is on the deck pile
             deck_pile = next((pile for pile in self.deck.piles if pile.pile_type == PileType.STOCK), None)
             if deck_pile and deck_pile.is_mouse_over(mouse_pos):
                  # If the deck pile is empty
                 if not deck_pile.cards:
+                    '''
+                    Determine if possible according to the rules outlined
+                    Where Draw 3 allows for 3 complete shuffles of the stock,
+                    Draw 1 allows for 1 complete shuffle of the stock
+                    '''
+                    self.draw_amount -= 1
+                    if not self.move_made and self.draw_amount <= 0:
+                        self.end_game_screen.show()
+                        self.new_game_btn.disable()
+                        self.settings_btn.disable()
+                    
+                    self.move_made = False
+                    
                     self.deck.transfer_waste_to_deck()
                     self.score.refresh_stockpile()
                 else:
-                    self.deck.transfer_card_from_deck_to_waste()
+                   for i in range(self.max_draw_amount):
+                        self.deck.transfer_card_from_deck_to_waste()
                 return
             
             # For all other pile types
@@ -188,7 +282,7 @@ class Ui:
 
 
     def handle_mouse_up(self, mouse_pos):
-        if not self.win_screen.visible:
+        if not self.end_game_screen.visible and not self.settings.visible and not self.settings_close_msg.visible:
             if self.dragged_cards: 
                 target_pile = self.deck.get_pile_at_position(mouse_pos)
                 move_valid = False
@@ -215,6 +309,8 @@ class Ui:
                         card.set_position(original_x, original_y)
                         if card not in self.origin_pile.cards:
                             self.origin_pile.cards.append(card)
+                else:
+                    self.move_made = True
     
                 # Clear the list of dragged cards after dropping
                 self.dragged_cards = []
