@@ -1,13 +1,16 @@
 import time
 
+from gamemode import Gamemode
+
 class Score:
-    def __init__(self):
-        self.score = 0
+    def __init__(self, gamemode):
+        self.score = 0 if gamemode == Gamemode.KLONDIKE else -52
         self.moves_made = 0
         self.stockpile_refresh_count = 0
         self.start_time = time.time()
         self.last_penalty_time = time.time()
         self.consecutive_foundation_moves = 0  # Counter for consecutive moves to the foundation
+        self.gamemode = gamemode
 
 
     def move_to_tableau(self):
@@ -16,8 +19,9 @@ class Score:
 
     def move_to_foundation(self):
         self.consecutive_foundation_moves += 1  # Increment the counter
-        self.score += 10 * self.consecutive_foundation_moves  # Multiply the points by the consecutive counter
-        print(f"Moved to Foundation (award {10 * self.consecutive_foundation_moves} points): Score = {self.score}")
+        score_modifier = 10 if self.gamemode == Gamemode.KLONDIKE else 5
+        self.score += score_modifier * self.consecutive_foundation_moves  # Multiply the points by the consecutive counter
+        print(f"Moved to Foundation (award {score_modifier * self.consecutive_foundation_moves} points): Score = {self.score}")
 
     def move_from_foundation(self):
         self.score -= 10
