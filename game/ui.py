@@ -3,6 +3,7 @@ import sys
 from deck import Deck
 from text import Text
 from gamemode import Gamemode
+from settings import Settings
 from settingsmenu import SettingsMenu
 from widgets import *
 from pile import *
