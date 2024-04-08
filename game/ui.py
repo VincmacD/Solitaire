@@ -68,7 +68,7 @@ class Ui:
         self.bg_color = (BACKGROUND_COLOR) 
 
         # Initialize deck
-        self.deck = Deck()
+        self.deck = Deck(self)
         self.deck.load_cards() 
         self.deck.shuffle_cards()
         self.deck.load_piles((SCREEN_WIDTH, SCREEN_HEIGHT))
