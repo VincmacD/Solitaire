@@ -36,6 +36,7 @@ class Ui:
         self.move_made = False
 
         self.starting_gamemode = gamemode
+        self.draw_count = self.saved_settings.draw_amount
         
         # set screen size
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -222,8 +223,8 @@ class Ui:
                     Where Draw 3 allows for 3 complete shuffles of the stock,
                     Draw 1 allows for 1 complete shuffle of the stock
                     '''
-                    self.saved_settings.draw_amount -= 1
-                    if not self.move_made and self.saved_settings.draw_amount <= 0:
+                    self.draw_count -= 1
+                    if not self.move_made and self.draw_count <= 0:
                         self.end_game_screen.show()
                         self.new_game_btn.disable()
                         self.settings_btn.disable()
