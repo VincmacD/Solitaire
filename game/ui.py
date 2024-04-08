@@ -130,7 +130,9 @@ class Ui:
             if self.dragged_cards:  
                 for dragged_card in self.dragged_cards:  
                     img = self.deck.card_images[dragged_card.name_of_card] 
-                    offset = 0 if self.starting_gamemode == Gamemode.KLONDIKE else 50
+                    # If game mode is Vegas and the dragged card is from the waste pile, offset graphics due to 3 card fan
+                    # Otherwise, display normally
+                    offset = 50 if self.starting_gamemode == Gamemode.VEGAS and dragged_card in self.deck.piles[-5].cards else 0
                     self.screen.blit(img, (dragged_card.x+offset, dragged_card.y))
 
             # Place a win condition that restarts the game when triggered
