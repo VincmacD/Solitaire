@@ -4,6 +4,7 @@ import pygame
 from pile import *
 from card import *
 from pile_type import *
+from gamemode import Gamemode
 import sys
 
 # Directory of the current script
@@ -15,7 +16,8 @@ cards_dir = os.path.join(script_dir,'resources', 'cards')
 
 class Deck:
     #Represents the deck of cards in the game
-    def __init__(self, card_size=(CARD_WIDTH, CARD_HEIGHT)):
+    def __init__(self, ui, card_size=(CARD_WIDTH, CARD_HEIGHT)):
+        self.ui = ui
         self.cards = [] # List of Card objects
         self.suits = CARD_SUITS
         self.values = CARD_VALUES
@@ -239,8 +241,26 @@ class Deck:
         ])
         # Draws cards on top of mats
         for pile in self.piles:
-            for card in pile.cards:
-                img = self.card_images[card.name_of_card] if card.discovered else self.back_image_of_card
-                game_display.blit(img, (card.x, card.y))
+            if pile.pile_type == PileType.WASTE:
+                if self.ui.starting_gamemode == Gamemode.KLONDIKE:
+                    for card in pile.cards:
+                        img = self.card_images[card.name_of_card] if card.discovered else self.back_image_of_card
+                        game_display.blit(img, (card.x, card.y))
+                else:
+                    # Some logic assisted by ChatGPT
+                    cards_to_draw = min(3, len(pile.cards))
+                    start_index = len(pile.cards) - cards_to_draw
+                    
+                    #if cards_to_draw > 0:
+                    fan_count = 0
+                    
+                    for _, card in enumerate(pile.cards[start_index:], start=start_index):
+                        img = self.card_images[card.name_of_card] if card.discovered else self.back_image_of_card
+                        game_display.blit(img, (card.x+fan_count*25, card.y))
+                        fan_count += 1
+            else:
+                for card in pile.cards:
+                    img = self.card_images[card.name_of_card] if card.discovered else self.back_image_of_card
+                    game_display.blit(img, (card.x, card.y))
 
             
