@@ -6,9 +6,9 @@ from widgets import Button, RadioButton, RadioGroup
 class SettingsMenu:
     
     ORIGIN_X = 300
-    ORIGIN_Y = 225
+    ORIGIN_Y = 275
     WIDTH = 400
-    HEIGHT = 300
+    HEIGHT = 200
 
     def __init__(self, title):
         self.visible = False
