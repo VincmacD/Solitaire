@@ -130,7 +130,8 @@ class Ui:
             if self.dragged_cards:  
                 for dragged_card in self.dragged_cards:  
                     img = self.deck.card_images[dragged_card.name_of_card] 
-                    self.screen.blit(img, (dragged_card.x, dragged_card.y))
+                    offset = 0 if self.starting_gamemode == Gamemode.KLONDIKE else 50
+                    self.screen.blit(img, (dragged_card.x+offset, dragged_card.y))
 
             # Place a win condition that restarts the game when triggered
             if len(self.deck.piles[-1].cards) == 13 and len(self.deck.piles[-2].cards) == 13 and len(self.deck.piles[-3].cards) == 13 and len(self.deck.piles[-4].cards) == 13:
