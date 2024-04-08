@@ -46,7 +46,7 @@ class Ui:
         self.new_game_btn = Button('New Game', pygame.Rect(0,0,125,Button.DEFAULT_HEIGHT+5))
         self.settings_btn = Button('Settings', pygame.Rect(self.new_game_btn.rect.right+1, 0, 125, Button.DEFAULT_HEIGHT+5))
         self.settings = SettingsMenu('Game Settings')
-        self.settings_close_msg = ConfirmationBox('Some changes will be applied on the next game.')
+        self.settings_close_msg = ConfirmationBox('Changes will be applied on the next game.')
         self.end_game_screen = MessageBox('Play again?')
         self.gamemode_display = Text(str.capitalize(self.saved_settings.active_gamemode.name) + " rules applied.", (SCREEN_WIDTH//2, self.bottom_bar.bottom-19))
 
