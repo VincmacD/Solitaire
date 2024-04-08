@@ -33,6 +33,7 @@ class Ui:
         self.settings_changed = False
         
         self.score.start_game()
+        self.score.moves_made = 0
         self.move_made = False
 
         self.starting_gamemode = gamemode
@@ -171,7 +172,6 @@ class Ui:
             if self.settings_changed:
                 self.saved_settings.update_settings(self.saved_settings.active_gamemode)
                 self.score.update(self.saved_settings)
-                self.score.moves_made = 0
             self.setup(self.saved_settings.active_gamemode)
             if self.saved_settings.active_gamemode == Gamemode.KLONDIKE:
                 self.score = Score(self.saved_settings)
