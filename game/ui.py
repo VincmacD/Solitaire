@@ -22,18 +22,19 @@ class Ui:
     def __init__(self):
         # Initialize Pygame
         pygame.init()
-        self.score = Score(Gamemode.KLONDIKE)
-        self.setup()
+        self.saved_settings = Settings()
+        self.settings_changed = False
+        self.score = Score(self.saved_settings)
+        self.setup(Gamemode.KLONDIKE)
 
-    def setup(self, gamemode=Gamemode.KLONDIKE, draw_amount=1, cumulative_score=False):
-        self.gamemode = gamemode
-        self.max_draw_amount = draw_amount
-        self.draw_amount = self.max_draw_amount
-        self.cumulative_points = cumulative_score
+    def setup(self, gamemode):
+        self.saved_settings.update_settings(gamemode)
+        self.settings_changed = False
+        
+        self.score.start_game()
         self.move_made = False
 
-        if not self.cumulative_points:
-            self.score = Score(self.gamemode)
+        self.starting_gamemode = gamemode
         
         # set screen size
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -46,10 +47,10 @@ class Ui:
         self.settings = SettingsMenu('Game Settings')
         self.settings_close_msg = ConfirmationBox('Some changes will be applied on the next game.')
         self.end_game_screen = MessageBox('Play again?')
-        self.gamemode_display = Text(str.capitalize(self.gamemode.name) + " rules applied.", (SCREEN_WIDTH//2, self.bottom_bar.bottom-19))
+        self.gamemode_display = Text(str.capitalize(self.saved_settings.active_gamemode.name) + " rules applied.", (SCREEN_WIDTH//2, self.bottom_bar.bottom-19))
 
         # Set up saved settings
-        match self.gamemode:
+        match self.saved_settings.active_gamemode:
             case Gamemode.KLONDIKE:
                 self.settings.gamemode.options[0].select()
                 self.settings.gamemode.options[1].unselect()
@@ -58,10 +59,6 @@ class Ui:
                 self.settings.gamemode.options[0].unselect()
             case _:
                 pass
-        self.settings.draw_amount.options[0].select() if self.max_draw_amount == 1 else self.settings.draw_amount.options[0].unselect()
-        self.settings.draw_amount.options[1].select() if self.max_draw_amount == 3 else self.settings.draw_amount.options[1].unselect()
-        self.settings.cumulative_points.options[0].select() if self.cumulative_points == True else self.settings.cumulative_points.options[0].unselect()
-        self.settings.cumulative_points.options[1].select() if self.cumulative_points == False else self.settings.cumulative_points.options[1].unselect()
         
         # set title
         pygame.display.set_caption(SCREEN_TITLE)
@@ -154,37 +151,25 @@ class Ui:
         # Handle saved settings
         if self.settings.visible:
             if self.settings.gamemode.options[0].clicked(mouse_pos):
-                self.gamemode = Gamemode.KLONDIKE
+                self.saved_settings.update_settings(Gamemode.KLONDIKE)
+                self.settings_changed = True
                 self.settings.gamemode.options[0].select()
                 self.settings.gamemode.options[1].unselect()
             elif self.settings.gamemode.options[1].clicked(mouse_pos):
-                self.gamemode = Gamemode.VEGAS
+                self.saved_settings.update_settings(Gamemode.VEGAS)
+                self.settings_changed = True
                 self.settings.gamemode.options[1].select()
                 self.settings.gamemode.options[0].unselect()
-            
-            if self.settings.draw_amount.options[0].clicked(mouse_pos):
-                self.max_draw_amount = 1
-                self.draw_amount = self.max_draw_amount
-                self.settings.draw_amount.options[0].select()
-                self.settings.draw_amount.options[1].unselect()
-            elif self.settings.draw_amount.options[1].clicked(mouse_pos):
-                self.max_draw_amount = 3
-                self.draw_amount = self.max_draw_amount
-                self.settings.draw_amount.options[1].select()
-                self.settings.draw_amount.options[0].unselect()
-
-            if self.settings.cumulative_points.options[0].clicked(mouse_pos):
-                self.cumulative_points = True
-                self.settings.cumulative_points.options[0].select()
-                self.settings.cumulative_points.options[1].unselect()
-            elif self.settings.cumulative_points.options[1].clicked(mouse_pos):
-                self.cumulative_points = False
-                self.settings.cumulative_points.options[1].select()
-                self.settings.cumulative_points.options[0].unselect()
 
         # Handle In-game button (GUI) clicks
         if self.new_game_btn.clicked(mouse_pos) and self.new_game_btn.enabled:
-            self.setup(self.gamemode, self.max_draw_amount, self.cumulative_points)
+            if self.settings_changed:
+                self.saved_settings.update_settings(self.saved_settings.active_gamemode)
+                self.score.update(self.saved_settings)
+                self.score.moves_made = 0
+            self.setup(self.saved_settings.active_gamemode)
+            if self.saved_settings.active_gamemode == Gamemode.KLONDIKE:
+                self.score = Score(self.saved_settings)
         elif self.settings_btn.clicked(mouse_pos) and self.settings_btn.enabled:
             self.settings.show()
             self.settings_btn.disable()
@@ -193,7 +178,11 @@ class Ui:
         # Handle settings menu button clicks
         if self.settings.visible and self.settings.clicked_close(mouse_pos):
             self.settings.hide()
-            self.settings_close_msg.show()
+            if self.saved_settings.active_gamemode is not self.starting_gamemode:
+                self.settings_close_msg.show()
+            else:
+                self.settings_btn.enable()
+                self.new_game_btn.enable()
 
         if self.settings_close_msg.visible:
             if self.settings_close_msg.clicked_ok(mouse_pos):
@@ -208,7 +197,12 @@ class Ui:
                 self.end_game_screen.hide()
                 self.new_game_btn.enable()
                 self.settings_btn.enable()
-                self.setup(self.gamemode, self.max_draw_amount, self.cumulative_points)
+                if self.settings_changed:
+                    self.saved_settings.update_settings(self.saved_settings.active_gamemode)
+                    self.score.update(self.saved_settings)
+                self.setup(self.saved_settings.active_gamemode)
+                if self.saved_settings.active_gamemode == Gamemode.KLONDIKE:
+                    self.score = Score(self.saved_settings)
             elif self.end_game_screen.clicked_no(mouse_pos):
                 pygame.quit()
                 sys.exit()
@@ -224,8 +218,8 @@ class Ui:
                     Where Draw 3 allows for 3 complete shuffles of the stock,
                     Draw 1 allows for 1 complete shuffle of the stock
                     '''
-                    self.draw_amount -= 1
-                    if not self.move_made and self.draw_amount <= 0:
+                    self.saved_settings.draw_amount -= 1
+                    if not self.move_made and self.saved_settings.draw_amount <= 0:
                         self.end_game_screen.show()
                         self.new_game_btn.disable()
                         self.settings_btn.disable()
@@ -235,7 +229,7 @@ class Ui:
                     self.deck.transfer_waste_to_deck()
                     self.score.refresh_stockpile()
                 else:
-                   for i in range(self.max_draw_amount):
+                   for _ in range(1 if self.starting_gamemode == Gamemode.KLONDIKE else 3):
                         self.deck.transfer_card_from_deck_to_waste()
                 return
             
