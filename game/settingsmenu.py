@@ -21,10 +21,6 @@ class SettingsMenu:
         ''' Additional widgets '''
         self.gamemode_prompt = Text('Gamemode', (self.menu.left+60, self.menu.top+95))
         self.gamemode = RadioGroup((self.menu.left+225, self.menu.top+95), [RadioButton('Klondike'), RadioButton('Vegas      ')])
-        self.draw_amount_prompt = Text('Draw Cards', (self.menu.left+60, self.menu.top+145))
-        self.draw_amount = RadioGroup((self.menu.left+225, self.menu.top+145), [RadioButton('1            '), RadioButton('3            ')], x_spacing=55)
-        self.cumulative_points_prompt = Text('Cumulative Score (Vegas)', (self.menu.left+110, self.menu.top+195))
-        self.cumulative_points = RadioGroup((self.menu.left+225, self.menu.top+195), [RadioButton('On          '), RadioButton("Off          ")], x_spacing=55)
         self.close = Button('Ok', pygame.Rect(self.menu.x+150, self.menu.bottom-50, Button.DEFAULT_WIDTH, Button.DEFAULT_HEIGHT))
 
     def clicked_close(self, mouse_pos):
@@ -43,9 +39,5 @@ class SettingsMenu:
         pygame.draw.rect(surface, (0,0,0), self.border, 1)
         self.gamemode_prompt.draw(surface)
         self.gamemode.draw(surface)
-        self.draw_amount_prompt.draw(surface)
-        self.draw_amount.draw(surface)
-        self.cumulative_points_prompt.draw(surface)
-        self.cumulative_points.draw(surface)
         self.close.draw(surface)
         self.prompt.draw(surface)
